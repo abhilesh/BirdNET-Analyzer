@@ -6,7 +6,7 @@
 # BL -> Beaver Lagoon
 # CF -> Central Field
 # CP -> Control Pond
-SITE="BL"
+SITE="CF"
 
 # Set latitude and longitude based on the site code
 case $SITE in
@@ -34,7 +34,10 @@ WEEK_NUM=33
 # Set locale for species names
 LOCALE='en_UK'
 
-INPUT_DIR="/Users/abhilesh/Desktop/BL_20240816"
-OUTPUT_DIR="/Users/abhilesh/Desktop/BL_20240816_output"
+# Set minimum confidence interval
+MIN_CONF=0.5
 
-python analyze.py --i $INPUT_DIR --o $OUTPUT_DIR --week $WEEK_NUM --lat $LAT --lon $LONG --locale $LOCALE --rtype 'table' --combine_results
+INPUT_DIR="/Volumes/Extreme\ SSD/Audiomoth_data/August_2024/Central\ Field/CF_20240816"
+OUTPUT_DIR="/Users/abhilesh/Desktop/"
+
+python analyze.py --i $INPUT_DIR --o $OUTPUT_DIR --week $WEEK_NUM --lat $LAT --lon $LONG --locale $LOCALE --min_conf $MIN_CONF --rtype 'csv' --combine_results

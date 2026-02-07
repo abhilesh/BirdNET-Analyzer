@@ -21,9 +21,7 @@ import utils
 #                    0       1      2           3             4              5               6                7           8             9           10         11
 RAVEN_TABLE_HEADER = "Selection\tView\tChannel\tBegin Time (s)\tEnd Time (s)\tLow Freq (Hz)\tHigh Freq (Hz)\tCommon Name\tSpecies Code\tConfidence\tBegin Path\tFile Offset (s)\n"
 RTABLE_HEADER = "filepath,start,end,scientific_name,common_name,confidence,lat,lon,week,overlap,sensitivity,min_conf,species_list,model\n"
-KALEIDOSCOPE_HEADER = (
-    "INDIR,FOLDER,IN FILE,OFFSET,DURATION,scientific_name,common_name,confidence,lat,lon,week,overlap,sensitivity\n"
-)
+KALEIDOSCOPE_HEADER = "INDIR,FOLDER,IN FILE,OFFSET,DURATION,scientific_name,common_name,confidence,lat,lon,week,overlap,sensitivity\n"
 CSV_HEADER = "Start (s),End (s),Scientific name,Common name,Confidence,File\n"
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -40,7 +38,9 @@ def loadCodes():
     return codes
 
 
-def generate_raven_table(timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str) -> str:
+def generate_raven_table(
+    timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str
+) -> str:
     selection_id = 0
     out_string = RAVEN_TABLE_HEADER
 
@@ -59,7 +59,9 @@ def generate_raven_table(timestamps: list[str], result: dict[str, list], afile_p
         start, end = timestamp.split("-", 1)
 
         for c in result[timestamp]:
-            if c[1] > cfg.MIN_CONFIDENCE and (not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST):
+            if c[1] > cfg.MIN_CONFIDENCE and (
+                not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST
+            ):
                 selection_id += 1
                 label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
                 code = cfg.CODES[c[0]] if c[0] in cfg.CODES else c[0]
@@ -72,14 +74,14 @@ def generate_raven_table(timestamps: list[str], result: dict[str, list], afile_p
     # TODO: That's a weird way to do it, but it works for now. It would be better to keep track of file durations during the analysis.
     if len(out_string) == len(RAVEN_TABLE_HEADER) and cfg.OUTPUT_PATH is not None:
         selection_id += 1
-        out_string += (
-            f"{selection_id}\tSpectrogram 1\t1\t0\t3\t{low_freq}\t{high_freq}\tnocall\tnocall\t1.0\t{afile_path}\t0\n"
-        )
-        
+        out_string += f"{selection_id}\tSpectrogram 1\t1\t0\t3\t{low_freq}\t{high_freq}\tnocall\tnocall\t1.0\t{afile_path}\t0\n"
+
     utils.save_result_file(result_path, out_string)
 
 
-def generate_audacity(timestamps: list[str], result: dict[str, list], result_path: str) -> str:
+def generate_audacity(
+    timestamps: list[str], result: dict[str, list], result_path: str
+) -> str:
     out_string = ""
 
     # Audacity timeline labels
@@ -87,7 +89,9 @@ def generate_audacity(timestamps: list[str], result: dict[str, list], result_pat
         rstring = ""
 
         for c in result[timestamp]:
-            if c[1] > cfg.MIN_CONFIDENCE and (not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST):
+            if c[1] > cfg.MIN_CONFIDENCE and (
+                not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST
+            ):
                 label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
                 ts = timestamp.replace("-", "\t")
                 lbl = label.replace("_", ", ")
@@ -99,7 +103,9 @@ def generate_audacity(timestamps: list[str], result: dict[str, list], result_pat
     utils.save_result_file(result_path, out_string)
 
 
-def generate_rtable(timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str) -> str:
+def generate_rtable(
+    timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str
+) -> str:
     out_string = RTABLE_HEADER
 
     for timestamp in timestamps:
@@ -107,23 +113,27 @@ def generate_rtable(timestamps: list[str], result: dict[str, list], afile_path: 
         start, end = timestamp.split("-", 1)
 
         for c in result[timestamp]:
-            if c[1] > cfg.MIN_CONFIDENCE and (not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST):
+            if c[1] > cfg.MIN_CONFIDENCE and (
+                not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST
+            ):
                 label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
-                rstring += "{},{},{},{},{},{:.4f},{:.4f},{:.4f},{},{},{},{},{},{}\n".format(
-                    afile_path,
-                    start,
-                    end,
-                    label.split("_", 1)[0],
-                    label.split("_", 1)[-1],
-                    c[1],
-                    cfg.LATITUDE,
-                    cfg.LONGITUDE,
-                    cfg.WEEK,
-                    cfg.SIG_OVERLAP,
-                    (1.0 - cfg.SIGMOID_SENSITIVITY) + 1.0,
-                    cfg.MIN_CONFIDENCE,
-                    cfg.SPECIES_LIST_FILE,
-                    os.path.basename(cfg.MODEL_PATH),
+                rstring += (
+                    "{},{},{},{},{},{:.4f},{:.4f},{:.4f},{},{},{},{},{},{}\n".format(
+                        afile_path,
+                        start,
+                        end,
+                        label.split("_", 1)[0],
+                        label.split("_", 1)[-1],
+                        c[1],
+                        cfg.LATITUDE,
+                        cfg.LONGITUDE,
+                        cfg.WEEK,
+                        cfg.SIG_OVERLAP,
+                        (1.0 - cfg.SIGMOID_SENSITIVITY) + 1.0,
+                        cfg.MIN_CONFIDENCE,
+                        cfg.SPECIES_LIST_FILE,
+                        os.path.basename(cfg.MODEL_PATH),
+                    )
                 )
 
         # Write result string to file
@@ -132,7 +142,9 @@ def generate_rtable(timestamps: list[str], result: dict[str, list], afile_path: 
     utils.save_result_file(result_path, out_string)
 
 
-def generate_kaleidoscope(timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str) -> str:
+def generate_kaleidoscope(
+    timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str
+) -> str:
     out_string = KALEIDOSCOPE_HEADER
 
     folder_path, filename = os.path.split(afile_path)
@@ -143,22 +155,26 @@ def generate_kaleidoscope(timestamps: list[str], result: dict[str, list], afile_
         start, end = timestamp.split("-", 1)
 
         for c in result[timestamp]:
-            if c[1] > cfg.MIN_CONFIDENCE and (not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST):
+            if c[1] > cfg.MIN_CONFIDENCE and (
+                not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST
+            ):
                 label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
-                rstring += "{},{},{},{},{},{},{},{:.4f},{:.4f},{:.4f},{},{},{}\n".format(
-                    parent_folder.rstrip("/"),
-                    folder_name,
-                    filename,
-                    start,
-                    float(end) - float(start),
-                    label.split("_", 1)[0],
-                    label.split("_", 1)[-1],
-                    c[1],
-                    cfg.LATITUDE,
-                    cfg.LONGITUDE,
-                    cfg.WEEK,
-                    cfg.SIG_OVERLAP,
-                    (1.0 - cfg.SIGMOID_SENSITIVITY) + 1.0,
+                rstring += (
+                    "{},{},{},{},{},{},{},{:.4f},{:.4f},{:.4f},{},{},{}\n".format(
+                        parent_folder.rstrip("/"),
+                        folder_name,
+                        filename,
+                        start,
+                        float(end) - float(start),
+                        label.split("_", 1)[0],
+                        label.split("_", 1)[-1],
+                        c[1],
+                        cfg.LATITUDE,
+                        cfg.LONGITUDE,
+                        cfg.WEEK,
+                        cfg.SIG_OVERLAP,
+                        (1.0 - cfg.SIGMOID_SENSITIVITY) + 1.0,
+                    )
                 )
 
         # Write result string to file
@@ -167,7 +183,9 @@ def generate_kaleidoscope(timestamps: list[str], result: dict[str, list], afile_
     utils.save_result_file(result_path, out_string)
 
 
-def generate_csv(timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str) -> str:
+def generate_csv(
+    timestamps: list[str], result: dict[str, list], afile_path: str, result_path: str
+) -> str:
     out_string = CSV_HEADER
 
     for timestamp in timestamps:
@@ -176,7 +194,9 @@ def generate_csv(timestamps: list[str], result: dict[str, list], afile_path: str
         for c in result[timestamp]:
             start, end = timestamp.split("-", 1)
 
-            if c[1] > cfg.MIN_CONFIDENCE and (not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST):
+            if c[1] > cfg.MIN_CONFIDENCE and (
+                not cfg.SPECIES_LIST or c[0] in cfg.SPECIES_LIST
+            ):
                 label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
                 rstring += f"{start},{end},{label.split('_', 1)[0]},{label.split('_', 1)[-1]},{c[1]:.4f},{afile_path}\n"
 
@@ -222,7 +242,9 @@ def combine_raven_tables(saved_results: list[str]):
     time_offset = 0
     audiofiles = []
 
-    with open(os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_RAVEN_FILENAME), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_RAVEN_FILENAME), "w", encoding="utf-8"
+    ) as f:
         f.write(RAVEN_TABLE_HEADER)
 
         for rfile in saved_results:
@@ -251,7 +273,10 @@ def combine_raven_tables(saved_results: list[str]):
 
                         # Is species code and common name == 'nocall'?
                         # If so, that's a dummy line and we can skip it
-                        if line.split("\t")[7] == "nocall" and line.split("\t")[8] == "nocall":
+                        if (
+                            line.split("\t")[7] == "nocall"
+                            and line.split("\t")[8] == "nocall"
+                        ):
                             continue
 
                         # adjust selection id
@@ -281,7 +306,9 @@ def combine_raven_tables(saved_results: list[str]):
 
 def combine_rtable_files(saved_results: list[str]):
     # Combine all files
-    with open(os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_RTABLE_FILENAME), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_RTABLE_FILENAME), "w", encoding="utf-8"
+    ) as f:
         f.write(RTABLE_HEADER)
 
         for rfile in saved_results:
@@ -305,7 +332,11 @@ def combine_rtable_files(saved_results: list[str]):
 
 def combine_kaleidoscope_files(saved_results: list[str]):
     # Combine all files
-    with open(os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_KALEIDOSCOPE_FILENAME), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_KALEIDOSCOPE_FILENAME),
+        "w",
+        encoding="utf-8",
+    ) as f:
         f.write(KALEIDOSCOPE_HEADER)
 
         for rfile in saved_results:
@@ -329,7 +360,9 @@ def combine_kaleidoscope_files(saved_results: list[str]):
 
 def combine_csv_files(saved_results: list[str]):
     # Combine all files
-    with open(os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_CSV_FILENAME), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(cfg.OUTPUT_PATH, cfg.OUTPUT_CSV_FILENAME), "w", encoding="utf-8"
+    ) as f:
         f.write(CSV_HEADER)
 
         for rfile in saved_results:
@@ -390,10 +423,14 @@ def getRawAudioFromFile(fpath: str, offset, duration):
         The signal split into a list of chunks.
     """
     # Open file
-    sig, rate = audio.openAudioFile(fpath, cfg.SAMPLE_RATE, offset, duration, cfg.BANDPASS_FMIN, cfg.BANDPASS_FMAX)
+    sig, rate = audio.openAudioFile(
+        fpath, cfg.SAMPLE_RATE, offset, duration, cfg.BANDPASS_FMIN, cfg.BANDPASS_FMAX
+    )
 
     # Split into raw audio chunks
-    chunks = audio.splitSignal(sig, rate, cfg.SIG_LENGTH, cfg.SIG_OVERLAP, cfg.SIG_MINLEN)
+    chunks = audio.splitSignal(
+        sig, rate, cfg.SIG_LENGTH, cfg.SIG_OVERLAP, cfg.SIG_MINLEN
+    )
 
     return chunks
 
@@ -413,7 +450,9 @@ def predict(samples):
 
     # Logits or sigmoid activations?
     if cfg.APPLY_SIGMOID:
-        prediction = model.flat_sigmoid(np.array(prediction), sensitivity=-cfg.SIGMOID_SENSITIVITY)
+        prediction = model.flat_sigmoid(
+            np.array(prediction), sensitivity=-cfg.SIGMOID_SENSITIVITY
+        )
 
     return prediction
 
@@ -432,17 +471,25 @@ def get_result_file_names(fpath: str):
     file_shorthand = rpath.rsplit(".", 1)[0]
 
     if "table" in cfg.RESULT_TYPES:
-        result_names["table"] = os.path.join(cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.selection.table.txt")
+        result_names["table"] = os.path.join(
+            cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.selection.table.txt"
+        )
     if "audacity" in cfg.RESULT_TYPES:
-        result_names["audacity"] = os.path.join(cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.results.txt")
+        result_names["audacity"] = os.path.join(
+            cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.results.txt"
+        )
     if "r" in cfg.RESULT_TYPES:
-        result_names["r"] = os.path.join(cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.results.r.csv")
+        result_names["r"] = os.path.join(
+            cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.results.r.csv"
+        )
     if "kaleidoscope" in cfg.RESULT_TYPES:
         result_names["kaleidoscope"] = os.path.join(
             cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.results.kaleidoscope.csv"
         )
     if "csv" in cfg.RESULT_TYPES:
-        result_names["csv"] = os.path.join(cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.results.csv")
+        result_names["csv"] = os.path.join(
+            cfg.OUTPUT_PATH, file_shorthand + ".BirdNET.results.csv"
+        )
 
     return result_names
 
@@ -523,7 +570,9 @@ def analyzeFile(item):
                     p_labels = zip(cfg.LABELS, pred)
 
                     # Sort by score
-                    p_sorted = sorted(p_labels, key=operator.itemgetter(1), reverse=True)
+                    p_sorted = sorted(
+                        p_labels, key=operator.itemgetter(1), reverse=True
+                    )
 
                     # Store top 5 results and advance indices
                     results[str(s_start) + "-" + str(s_end)] = p_sorted
@@ -565,8 +614,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze audio files with BirdNET")
     parser.add_argument("--i", default="example/", help="Path to input file or folder.")
     parser.add_argument("--o", default="example/", help="Path to output folder.")
-    parser.add_argument("--lat", type=float, default=-1, help="Recording location latitude. Set -1 to ignore.")
-    parser.add_argument("--lon", type=float, default=-1, help="Recording location longitude. Set -1 to ignore.")
+    parser.add_argument(
+        "--lat",
+        type=float,
+        default=-1,
+        help="Recording location latitude. Set -1 to ignore.",
+    )
+    parser.add_argument(
+        "--lon",
+        type=float,
+        default=-1,
+        help="Recording location longitude. Set -1 to ignore.",
+    )
     parser.add_argument(
         "--week",
         type=int,
@@ -615,10 +674,16 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction,
     )
     parser.add_argument(
-        "--threads", type=int, default=min(8, max(1, multiprocessing.cpu_count() // 2)), help="Number of CPU threads."
+        "--threads",
+        type=int,
+        default=min(8, max(1, multiprocessing.cpu_count() // 2)),
+        help="Number of CPU threads.",
     )
     parser.add_argument(
-        "--batchsize", type=int, default=1, help="Number of samples to process at the same time. Defaults to 1."
+        "--batchsize",
+        type=int,
+        default=1,
+        help="Number of samples to process at the same time. Defaults to 1.",
     )
     parser.add_argument(
         "--locale",
@@ -672,15 +737,21 @@ if __name__ == "__main__":
 
     # Set custom classifier?
     if args.classifier is not None:
-        cfg.CUSTOM_CLASSIFIER = args.classifier  # we treat this as absolute path, so no need to join with dirname
+        cfg.CUSTOM_CLASSIFIER = (
+            args.classifier
+        )  # we treat this as absolute path, so no need to join with dirname
 
         if args.classifier.endswith(".tflite"):
-            cfg.LABELS_FILE = args.classifier.replace(".tflite", "_Labels.txt")  # same for labels file
+            cfg.LABELS_FILE = args.classifier.replace(
+                ".tflite", "_Labels.txt"
+            )  # same for labels file
             cfg.LABELS = utils.readLines(cfg.LABELS_FILE)
         else:
             cfg.APPLY_SIGMOID = False
             cfg.LABELS_FILE = os.path.join(args.classifier, "labels", "label_names.csv")
-            cfg.LABELS = [line.split(",")[1] for line in utils.readLines(cfg.LABELS_FILE)]
+            cfg.LABELS = [
+                line.split(",")[1] for line in utils.readLines(cfg.LABELS_FILE)
+            ]
 
         args.lat = -1
         args.lon = -1
@@ -688,7 +759,10 @@ if __name__ == "__main__":
 
     # Load translated labels
     lfile = os.path.join(
-        cfg.TRANSLATED_LABELS_PATH, os.path.basename(cfg.LABELS_FILE).replace(".txt", "_{}.txt".format(args.locale))
+        cfg.TRANSLATED_LABELS_PATH,
+        os.path.basename(cfg.LABELS_FILE).replace(
+            ".txt", "_{}.txt".format(args.locale)
+        ),
     )
 
     if not args.locale in ["en"] and os.path.isfile(lfile):
@@ -709,12 +783,16 @@ if __name__ == "__main__":
             cfg.SPECIES_LIST_FILE = os.path.join(SCRIPT_DIR, args.slist)
 
             if os.path.isdir(cfg.SPECIES_LIST_FILE):
-                cfg.SPECIES_LIST_FILE = os.path.join(cfg.SPECIES_LIST_FILE, "species_list.txt")
+                cfg.SPECIES_LIST_FILE = os.path.join(
+                    cfg.SPECIES_LIST_FILE, "species_list.txt"
+                )
 
         cfg.SPECIES_LIST = utils.readLines(cfg.SPECIES_LIST_FILE)
     else:
         cfg.SPECIES_LIST_FILE = None
-        cfg.SPECIES_LIST = species.getSpeciesList(cfg.LATITUDE, cfg.LONGITUDE, cfg.WEEK, cfg.LOCATION_FILTER_THRESHOLD)
+        cfg.SPECIES_LIST = species.getSpeciesList(
+            cfg.LATITUDE, cfg.LONGITUDE, cfg.WEEK, cfg.LOCATION_FILTER_THRESHOLD
+        )
 
     if not cfg.SPECIES_LIST:
         print(f"Species list contains {len(cfg.LABELS)} species")
